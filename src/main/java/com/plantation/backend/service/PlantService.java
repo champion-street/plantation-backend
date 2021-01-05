@@ -1,6 +1,7 @@
 package com.plantation.backend.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
@@ -100,6 +101,29 @@ public class PlantService {
         plant.setImageURL(imageURL);
         plantRepository.save(plant);
         return plant;
+    }
+
+    public void deleteAllPlants() {
+        plantRepository.deleteAll();
+    }
+
+    public void bulkWaterPlants(String body) {
+        ObjectMapper mapper = new ObjectMapper();
+
+        try {
+            JsonNode dataTree = mapper.readTree(body);
+            String ids = mapper.treeToValue(dataTree.get("ids"), String.class);
+            String[] idArray = ids.split(",");
+            for (String id : idArray) {
+                Plant plant = plantRepository.findById(Long.parseLong(id)).orElse(null);
+                if (plant != null) {
+                    plant = updatePlantWatered(plant);
+                    plantRepository.save(plant);
+                }
+            }
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
     }
 
 }
