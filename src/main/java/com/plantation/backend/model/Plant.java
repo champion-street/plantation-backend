@@ -31,8 +31,8 @@ public class Plant {
     private int wateringCycleInDays;
 
     @Column(name = "last_watered")
-    private long lastWateringInMilliseconds;
+    private String lastWateringDate;
 
-    private long wateringDeadline;
+    private String wateringDeadline;
 
 }
