@@ -52,7 +52,7 @@ public class WebController {
     public ResponseEntity addImageToPlant(@PathVariable("id") long id, @RequestParam MultipartFile file) {
         Plant plant = plantService.getPlant(id);
         String imageURL = plantService.uploadPlantImage(plant, file);
-        plantService.setPlantImageURL(plant, imageURL);
+        plant = plantService.setPlantImageURL(plant, imageURL);
         return createResponse(plant);
     }
 
