@@ -35,6 +35,12 @@ public class WebController {
         return createResponse(plant);
     }
 
+    @PutMapping("/plant")
+    public ResponseEntity bulkWaterPlants(@RequestBody String body) {
+        plantService.bulkWaterPlants(body);
+        return new ResponseEntity(HttpStatus.OK);
+    }
+
     @GetMapping("/plant/{id}")
     public ResponseEntity getPlant(@PathVariable("id") long id) {
         Plant plant = plantService.getPlant(id);
@@ -72,6 +78,12 @@ public class WebController {
             e.printStackTrace();
         }
         return createResponse(patchedPlant);
+    }
+
+    @DeleteMapping("/bulk-delete-all")
+    public ResponseEntity deleteAllPlantFromDb() {
+        plantService.deleteAllPlants();
+        return new ResponseEntity(HttpStatus.OK);
     }
 
     private ResponseEntity createResponse(Object object) {
