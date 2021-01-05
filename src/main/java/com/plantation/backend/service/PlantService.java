@@ -14,6 +14,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -112,8 +113,7 @@ public class PlantService {
 
         try {
             JsonNode dataTree = mapper.readTree(body);
-            String ids = mapper.treeToValue(dataTree.get("ids"), String.class);
-            String[] idArray = ids.split(",");
+            String[] idArray = mapper.treeToValue(dataTree.get("ids"), String[].class);
             for (String id : idArray) {
                 Plant plant = plantRepository.findById(Long.parseLong(id)).orElse(null);
                 if (plant != null) {
