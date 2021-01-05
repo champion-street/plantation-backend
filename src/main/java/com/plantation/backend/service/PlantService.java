@@ -1,7 +1,6 @@
 package com.plantation.backend.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
@@ -14,12 +13,18 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @Component
 public class PlantService {
+
+    private final String DATE_PATTERN = "yyyy-MM-dd";
+
+    private final SimpleDateFormat sdf = new SimpleDateFormat(DATE_PATTERN);
 
     @Autowired
     PlantRepository plantRepository;
@@ -42,13 +47,16 @@ public class PlantService {
     }
 
     public Plant calculateAndSetWateringDeadline(Plant plant) {
-        long wateringCycleInMilliseconds = convertDaysToMillisecond(plant.getWateringCycleInDays());
-        plant.setWateringDeadline(plant.getLastWateringInMilliseconds() + wateringCycleInMilliseconds);
+        SimpleDateFormat sdf = new SimpleDateFormat(DATE_PATTERN);
+        try {
+            Calendar c = Calendar.getInstance();
+            c.setTime(sdf.parse(plant.getLastWateringDate()));
+            c.add(Calendar.DAY_OF_MONTH, plant.getWateringCycleInDays());
+            plant.setWateringDeadline(sdf.format(c.getTime()));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
         return plant;
-    }
-
-    private long convertDaysToMillisecond(int days) {
-        return TimeUnit.DAYS.toMillis(days);
     }
 
     public Plant addPlant(String body) {
@@ -62,7 +70,8 @@ public class PlantService {
             Plant plant = Plant.builder().name(name).description(description).wateringCycleInDays(wateringCycle).build();
 
             if (plant != null) {
-                plant.setLastWateringInMilliseconds(System.currentTimeMillis());
+                Date now = Calendar.getInstance().getTime();
+                plant.setLastWateringDate(sdf.format(now));
                 plant = calculateAndSetWateringDeadline(plant);
                 plantRepository.save(plant);
                 return plant;
@@ -82,7 +91,7 @@ public class PlantService {
     }
 
     public Plant updatePlantWatered(Plant plant) {
-        plant.setLastWateringInMilliseconds(System.currentTimeMillis());
+        plant.setLastWateringDate(sdf.format(Calendar.getInstance().getTime()));
         return calculateAndSetWateringDeadline(plant);
     }
 
@@ -100,8 +109,7 @@ public class PlantService {
 
     public Plant setPlantImageURL(Plant plant, String imageURL) {
         plant.setImageURL(imageURL);
-        plantRepository.save(plant);
-        return plant;
+        return plantRepository.save(plant);
     }
 
     public void deleteAllPlants() {
