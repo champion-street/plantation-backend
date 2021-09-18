@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS plants (
+CREATE TABLE plants (
     id INT PRIMARY KEY NOT NUll,
     name TEXT NOT NULL,
     description TEXT,
@@ -6,4 +6,4 @@ CREATE TABLE IF NOT EXISTS plants (
     watering_cycle BIGINT,
     last_watered BIGINT,
     watering_deadline BIGINT
-)
+);

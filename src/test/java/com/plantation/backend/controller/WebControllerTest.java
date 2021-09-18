@@ -1,5 +1,9 @@
 package com.plantation.backend.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.plantation.backend.model.Plant;
+import com.plantation.backend.repository.PlantRepository;
+import com.plantation.backend.service.PlantService;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpGet;
@@ -7,13 +11,22 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.assertj.core.internal.bytebuddy.utility.RandomString;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.json.JacksonTester;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MockMvcBuilder;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -23,10 +36,25 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @WebMvcTest(WebController.class)
 @ActiveProfiles("test")
-class WebControllerTest {
+@ExtendWith(MockitoExtension.class)
+public class WebControllerTest {
 
-    @Autowired
     private MockMvc mvc;
+
+    @Mock
+    private PlantRepository plantRepository;
+
+    @InjectMocks
+    private WebController webController;
+
+    private JacksonTester<Plant> jsonPlant;
+
+    @Before
+    public void setup() {
+        JacksonTester.initFields(this, new ObjectMapper());
+        mvc = MockMvcBuilders.standaloneSetup(webController)
+                .build();
+    }
 
     @Test
     public void testIndexMethodShouldReturnOk() throws Exception {
@@ -41,7 +69,21 @@ class WebControllerTest {
 
         HttpResponse response = HttpClientBuilder.create().build().execute(request);
 
-        Assert.assertThat(response.getStatusLine().getStatusCode(), equalTo(HttpStatus.SC_NOT_FOUND));
+        Assert.assertEquals("HTTP Response code is not 404", response.getStatusLine().getStatusCode(), equalTo(HttpStatus.SC_NOT_FOUND));
     }
+
+/*    @Test
+    public void testCreatePlantShouldReturnsOkWhenBodyIsValid() throws Exception {
+        String body = objectMapper.writeValueAsString(plantObject);
+
+        mvc.perform(post("/plant")
+                .contentType(MediaType.APPLICATION_JSON_VALUE)
+                .content(body)
+        )
+                .andExpect(status().isOk());
+
+    }*/
+
+
 
 }

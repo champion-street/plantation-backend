@@ -51,4 +51,7 @@ public class FileStorageService {
         return file.delete();
     }
 
+    public Path getFileStorageLocation() {
+        return fileStorageLocation;
+    }
 }

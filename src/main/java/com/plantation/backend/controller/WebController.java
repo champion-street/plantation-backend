@@ -14,6 +14,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.text.ParseException;
 import java.util.List;
 
 @CrossOrigin("*")
@@ -30,9 +31,9 @@ public class WebController {
     }
 
     @PostMapping(value = "/plant")
-    public ResponseEntity addPlant(@RequestBody String body) {
-        Plant plant = plantService.addPlant(body);
-        return createResponse(plant);
+    public ResponseEntity addPlant(@RequestBody Plant plant) throws ParseException, JsonProcessingException {
+        Plant newPlant = plantService.addPlant(plant);
+        return createResponse(newPlant);
     }
 
     @PutMapping("/plant")
@@ -44,7 +45,11 @@ public class WebController {
     @GetMapping("/plant/{id}")
     public ResponseEntity getPlant(@PathVariable("id") long id) {
         Plant plant = plantService.getPlant(id);
-        plantService.calculateAndSetWateringDeadline(plant);
+        try {
+            plantService.calculateAndSetWateringDeadline(plant);
+        } catch (Exception e) {
+            return createResponse(null, "Something went wrong during getting the desired plant!");
+        }
         return createResponse(plant);
     }
 
@@ -59,13 +64,21 @@ public class WebController {
     @PutMapping("/plant/{id}")
     public ResponseEntity updatePlantWatered(@PathVariable("id") long id) {
         Plant plant = plantService.getPlant(id);
-        return createResponse(plantService.updatePlantWatered(plant));
+        try {
+            return createResponse(plantService.updatePlantWatered(plant));
+        } catch (ParseException e) {
+            return createResponse(null);
+        }
     }
 
     @DeleteMapping("/plant/{id}")
     public ResponseEntity deletePlant(@PathVariable("id") long id) {
-        plantService.deletePlant(id);
-        return new ResponseEntity(HttpStatus.OK);
+        try {
+            plantService.deletePlant(id);
+        } catch (Exception e) {
+            return createResponse(null, "Something went wrong while deleting plant!");
+        }
+        return createResponse("Plant deleted!");
     }
 
     @PatchMapping(value = "/plant/{id}", consumes = "application/json-patch+json")
@@ -74,8 +87,8 @@ public class WebController {
         Plant patchedPlant = null;
         try {
             patchedPlant = plantService.applyPatchToPlant(jsonPatch, plant);
-        } catch (JsonPatchException | JsonProcessingException e) {
-            e.printStackTrace();
+        } catch (JsonPatchException | JsonProcessingException | ParseException e) {
+            return createResponse(null);
         }
         return createResponse(patchedPlant);
     }
@@ -87,11 +100,15 @@ public class WebController {
     }
 
     private ResponseEntity createResponse(Object object) {
-        String returnJson = JSONService.objectToString(object);
-        if (!StringUtils.isEmpty(returnJson)) {
+        return createResponse(object, null);
+    }
+
+    private ResponseEntity createResponse(Object object, String message) {
+        if (object != null) {
+            String returnJson = JSONService.objectToString(object);
             return new ResponseEntity(returnJson, HttpStatus.OK);
         } else {
-            return new ResponseEntity("Something went wrong!", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity(message, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

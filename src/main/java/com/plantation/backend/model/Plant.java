@@ -2,10 +2,7 @@ package com.plantation.backend.model;
 
 import lombok.*;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity
 @Data
@@ -15,7 +12,8 @@ import javax.persistence.Id;
 public class Plant {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name="id", updatable = false)
     long id;
 
     @Column(name = "name", nullable = false)
@@ -27,7 +25,7 @@ public class Plant {
     @Column(name = "url")
     private String imageURL;
 
-    @Column(name = "watering_cycle")
+    @Column(name = "watering_cycle", nullable = false)
     private int wateringCycleInDays;
 
     @Column(name = "last_watered")

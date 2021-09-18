@@ -112,8 +112,8 @@ public class PlantServiceTest {
     @Test
     @Transactional
     public void testAddPlantShouldReturn2() throws JsonProcessingException, ParseException {
-        String plantJson = objectMapper.writeValueAsString(plantObject);
-        Plant plant = plantService.addPlant(plantJson);
+        Plant newPlant = Plant.builder().name("newPlant").wateringCycleInDays(3).build();
+        Plant plant = plantService.addPlant(newPlant);
         assertEquals(2, plantRepository.findAll().size());
     }
 
