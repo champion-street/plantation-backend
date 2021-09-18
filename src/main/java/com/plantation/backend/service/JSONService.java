@@ -5,10 +5,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
-import org.springframework.stereotype.Component;
 
-@Component
 public class JSONService {
+
+    private JSONService() {
+        throw new IllegalStateException("Utility class");
+    }
 
     public static String objectToString(Object object) {
         ObjectMapper objectMapper = new ObjectMapper();

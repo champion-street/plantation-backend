@@ -6,12 +6,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import com.plantation.backend.model.Plant;
+import com.plantation.backend.model.PlantDTO;
 import com.plantation.backend.repository.PlantRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -21,7 +23,7 @@ import java.util.List;
 @Component
 public class PlantService {
 
-    private final String DATE_PATTERN = "yyyy-MM-dd";
+    private static final String DATE_PATTERN = "yyyy-MM-dd";
 
     private final SimpleDateFormat sdf = new SimpleDateFormat(DATE_PATTERN);
 
@@ -46,7 +48,6 @@ public class PlantService {
     }
 
     public Plant calculateAndSetWateringDeadline(Plant plant) throws ParseException {
-        SimpleDateFormat sdf = new SimpleDateFormat(DATE_PATTERN);
         Calendar c = Calendar.getInstance();
         c.setTime(sdf.parse(plant.getLastWateringDate()));
         c.add(Calendar.DAY_OF_MONTH, plant.getWateringCycleInDays());
@@ -54,7 +55,9 @@ public class PlantService {
         return plant;
     }
 
-    public Plant addPlant(Plant plant) throws ParseException {
+    public Plant addPlant(PlantDTO plantDTO) throws ParseException {
+
+        Plant plant = Plant.builder().name(plantDTO.getName()).description(plantDTO.getDescription()).wateringCycleInDays(plantDTO.getWateringCycleInDays()).build();
 
         Date now = Calendar.getInstance().getTime();
         plant.setLastWateringDate(sdf.format(now));
@@ -63,7 +66,7 @@ public class PlantService {
         return plant;
     }
 
-    public String uploadPlantImage(Plant plant, MultipartFile file) {
+    public String uploadPlantImage(Plant plant, MultipartFile file) throws IOException {
         if (!StringUtils.isEmpty(plant.getImageURL())) {
             deletePlantImage(plant.getId());
         }
@@ -75,12 +78,12 @@ public class PlantService {
         return calculateAndSetWateringDeadline(plant);
     }
 
-    public void deletePlant(long id) {
+    public void deletePlant(long id) throws IOException {
         deletePlantImage(id);
         plantRepository.deleteById(id);
     }
 
-    private void deletePlantImage(long id) {
+    private void deletePlantImage(long id) throws IOException {
         Plant plant = plantRepository.findById(id).orElse(null);
         if (plant != null && !StringUtils.isEmpty(plant.getImageURL())) {
             fileStorageService.deleteFile(plant.getImageURL());

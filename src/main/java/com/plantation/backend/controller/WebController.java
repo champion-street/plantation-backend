@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import com.plantation.backend.model.Plant;
+import com.plantation.backend.model.PlantDTO;
 import com.plantation.backend.service.JSONService;
 import com.plantation.backend.service.PlantService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,8 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.text.ParseException;
-import java.util.List;
 
 @CrossOrigin("*")
 @RestController
@@ -25,19 +26,18 @@ public class WebController {
 
     @GetMapping("/list")
     public ResponseEntity<?> getPlants() {
-        List<Plant> plantList = plantService.getAllPlants();
-        return createResponse(plantList);
+        return createResponse(plantService.getAllPlants());
     }
 
     @PostMapping(value = "/plant")
-    public ResponseEntity<?> addPlant(@RequestBody Plant plant) {
+    public ResponseEntity<?> addPlant(@RequestBody PlantDTO plant) {
         Plant newPlant = null;
         try {
             newPlant = plantService.addPlant(plant);
         } catch (ParseException e) {
-            createResponse(null, "Something went wrong during creating plant!");
+            createResponse("Something went wrong during creating plant!");
         }
-        return createResponse(newPlant);
+        return createResponse(newPlant, HttpStatus.CREATED);
     }
 
     @PutMapping("/plant")
@@ -52,13 +52,13 @@ public class WebController {
         try {
             plantService.calculateAndSetWateringDeadline(plant);
         } catch (Exception e) {
-            return createResponse(null, "Something went wrong during getting the desired plant!");
+            return createResponse("Something went wrong during getting the desired plant!");
         }
         return createResponse(plant);
     }
 
     @PostMapping(value = "/plant/{id}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<?> addImageToPlant(@PathVariable("id") long id, @RequestParam MultipartFile file) {
+    public ResponseEntity<?> addImageToPlant(@PathVariable("id") long id, @RequestParam MultipartFile file) throws IOException {
         Plant plant = plantService.getPlant(id);
         String imageURL = plantService.uploadPlantImage(plant, file);
         plant = plantService.setPlantImageURL(plant, imageURL);
@@ -71,7 +71,7 @@ public class WebController {
         try {
             return createResponse(plantService.updatePlantWatered(plant));
         } catch (ParseException e) {
-            return createResponse(null, "Error during watering!");
+            return createResponse("Error during watering!");
         }
     }
 
@@ -80,7 +80,7 @@ public class WebController {
         try {
             plantService.deletePlant(id);
         } catch (Exception e) {
-            return createResponse(null, "Something went wrong while deleting plant!");
+            return createResponse("Something went wrong while deleting plant!");
         }
         return createResponse("Plant deleted!");
     }
@@ -92,7 +92,7 @@ public class WebController {
         try {
             patchedPlant = plantService.applyPatchToPlant(jsonPatch, plant);
         } catch (JsonPatchException | JsonProcessingException | ParseException e) {
-            return createResponse(null, "Error during updating plant!");
+            return createResponse("Error during updating plant!");
         }
         return createResponse(patchedPlant);
     }
@@ -104,15 +104,24 @@ public class WebController {
     }
 
     private ResponseEntity<?> createResponse(Object object) {
-        return createResponse(object, null);
+        return createResponse(object, null, HttpStatus.OK);
     }
 
-    private ResponseEntity<?> createResponse(Object object, String message) {
+    private ResponseEntity<?> createResponse(String message) {
+        return createResponse(null, message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    private ResponseEntity<?> createResponse(Object object, HttpStatus statusCode) {
+        return createResponse(object, null, statusCode);
+    }
+
+    private ResponseEntity<?> createResponse(Object object, String message, HttpStatus statusCode) {
         if (object != null) {
             String returnJson = JSONService.objectToString(object);
-            return new ResponseEntity<>(returnJson, HttpStatus.OK);
+            return new ResponseEntity<>(returnJson, statusCode);
         } else {
-            return new ResponseEntity<>(message, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(message, statusCode);
         }
     }
+
 }

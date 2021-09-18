@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -45,10 +44,9 @@ public class FileStorageService {
         }
     }
 
-    public boolean deleteFile(String fileName) {
+    public void deleteFile(String fileName) throws IOException {
         Path targetLocation = this.fileStorageLocation.resolve(fileName);
-        File file = new File(String.valueOf(targetLocation));
-        return file.delete();
+        Files.delete(targetLocation);
     }
 
     public Path getFileStorageLocation() {
