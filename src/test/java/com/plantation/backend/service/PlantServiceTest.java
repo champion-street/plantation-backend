@@ -34,6 +34,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -59,12 +60,6 @@ public class PlantServiceTest {
     public Plant plant;
 
     public static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-
-    public Object plantObject = new Object() {
-        public final String name = "plantName";
-        public final String description = "plantDescription";
-        public final int wateringCycle = 2;
-    };
 
     public String bulkWaterIds = "{\"ids\":[\"1\", \"2\"]}";
 
@@ -113,7 +108,7 @@ public class PlantServiceTest {
     @Transactional
     public void testAddPlantShouldReturn2() throws JsonProcessingException, ParseException {
         Plant newPlant = Plant.builder().name("newPlant").wateringCycleInDays(3).build();
-        Plant plant = plantService.addPlant(newPlant);
+        plantService.addPlant(newPlant);
         assertEquals(2, plantRepository.findAll().size());
     }
 
@@ -186,7 +181,7 @@ public class PlantServiceTest {
 
     private void deleteFile() {
         Path path = service.getFileStorageLocation();
-        for (File file : path.toFile().listFiles()) {
+        for (File file : Objects.requireNonNull(path.toFile().listFiles())) {
             file.delete();
         }
     }

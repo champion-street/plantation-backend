@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
 
 import static org.junit.Assert.*;
 
@@ -48,7 +49,7 @@ public class FileStorageServiceTest {
     @After
     public void deleteFile() {
         Path path = fileStorageService.getFileStorageLocation();
-        for (File file : path.toFile().listFiles()) {
+        for (File file : Objects.requireNonNull(path.toFile().listFiles())) {
             file.delete();
         }
     }
@@ -61,13 +62,13 @@ public class FileStorageServiceTest {
     @Test
     public void testStoreFileDirectoryShouldContainOneFile() {
         fileStorageService.storeFile(result);
-        assertEquals(1, new File("E:\\opt\\plantation-backend\\images").listFiles().length);
+        assertEquals(1, Objects.requireNonNull(new File("E:\\opt\\plantation-backend\\images").listFiles()).length);
     }
 
     @Test
     public void testDeleteFileShouldReturnTrue() {
         fileStorageService.storeFile(result);
-        assertTrue(fileStorageService.deleteFile(new File("E:\\opt\\plantation-backend\\images").listFiles()[0].getName()));
+        assertTrue(fileStorageService.deleteFile(Objects.requireNonNull(new File("E:\\opt\\plantation-backend\\images").listFiles())[0].getName()));
     }
 
     @Test

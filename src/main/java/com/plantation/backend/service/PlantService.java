@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -55,7 +54,7 @@ public class PlantService {
         return plant;
     }
 
-    public Plant addPlant(Plant plant) throws JsonProcessingException, ParseException {
+    public Plant addPlant(Plant plant) throws ParseException {
 
         Date now = Calendar.getInstance().getTime();
         plant.setLastWateringDate(sdf.format(now));
