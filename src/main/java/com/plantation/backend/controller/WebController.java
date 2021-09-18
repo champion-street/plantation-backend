@@ -67,7 +67,7 @@ public class WebController {
         try {
             return createResponse(plantService.updatePlantWatered(plant));
         } catch (ParseException e) {
-            return createResponse(null);
+            return createResponse(null, "Error during watering!");
         }
     }
 
@@ -88,7 +88,7 @@ public class WebController {
         try {
             patchedPlant = plantService.applyPatchToPlant(jsonPatch, plant);
         } catch (JsonPatchException | JsonProcessingException | ParseException e) {
-            return createResponse(null);
+            return createResponse(null, "Error during updating plant!");
         }
         return createResponse(patchedPlant);
     }
