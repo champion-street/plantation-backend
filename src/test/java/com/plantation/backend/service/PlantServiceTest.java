@@ -6,6 +6,7 @@ import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import com.plantation.backend.Application;
 import com.plantation.backend.model.Plant;
+import com.plantation.backend.model.PlantDTO;
 import com.plantation.backend.repository.PlantRepository;
 import org.junit.After;
 import org.junit.Before;
@@ -107,13 +108,13 @@ public class PlantServiceTest {
     @Test
     @Transactional
     public void testAddPlantShouldReturn2() throws JsonProcessingException, ParseException {
-        Plant newPlant = Plant.builder().name("newPlant").wateringCycleInDays(3).build();
+        PlantDTO newPlant = PlantDTO.builder().name("newPlant").wateringCycleInDays(3).build();
         plantService.addPlant(newPlant);
         assertEquals(2, plantRepository.findAll().size());
     }
 
     @Test
-    public void testUploadPlantImageShouldReturnPNG() {
+    public void testUploadPlantImageShouldReturnPNG() throws IOException {
         MultipartFile file = getFile();
         assertTrue(plantService.uploadPlantImage(plant, file).endsWith("png"));
         deleteFile();
@@ -130,7 +131,7 @@ public class PlantServiceTest {
     }
 
     @Test
-    public void testDeletePlantShouldReturnEmptyDb() {
+    public void testDeletePlantShouldReturnEmptyDb() throws IOException {
         plantService.deletePlant(plantRepository.findAll().get(0).getId());
         assertEquals(0, plantRepository.findAll().size());
     }

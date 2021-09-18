@@ -66,13 +66,9 @@ public class FileStorageServiceTest {
     }
 
     @Test
-    public void testDeleteFileShouldReturnTrue() {
+    public void testDeleteFileShouldReturn0AsLengthOfFilesInDirectory() throws IOException {
         fileStorageService.storeFile(result);
-        assertTrue(fileStorageService.deleteFile(Objects.requireNonNull(new File("E:\\opt\\plantation-backend\\images").listFiles())[0].getName()));
-    }
-
-    @Test
-    public void testDeleteFileShouldReturnFalseWhenThereIsNoImage() {
-        assertFalse(fileStorageService.deleteFile("E:\\opt\\plantation-backend\\images\\asdasd.png"));
+        fileStorageService.deleteFile(Objects.requireNonNull(new File("E:\\opt\\plantation-backend\\images").listFiles())[0].getName());
+        assertEquals(0, new File("E:\\opt\\plantation-backend\\images").listFiles().length);
     }
 }
