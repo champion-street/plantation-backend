@@ -40,47 +40,28 @@ public class PlantService {
         return plantRepository.findById(id).orElse(null);
     }
 
-    public Plant applyPatchToPlant(JsonPatch patch, Plant originalPlant) throws JsonPatchException, JsonProcessingException {
+    public Plant applyPatchToPlant(JsonPatch patch, Plant originalPlant) throws JsonPatchException, JsonProcessingException, ParseException {
         Plant patchedPlant = (Plant) JSONService.applyPatch(patch, originalPlant, Plant.class);
         calculateAndSetWateringDeadline(patchedPlant);
         return plantRepository.save(patchedPlant);
     }
 
-    public Plant calculateAndSetWateringDeadline(Plant plant) {
+    public Plant calculateAndSetWateringDeadline(Plant plant) throws ParseException {
         SimpleDateFormat sdf = new SimpleDateFormat(DATE_PATTERN);
-        try {
-            Calendar c = Calendar.getInstance();
-            c.setTime(sdf.parse(plant.getLastWateringDate()));
-            c.add(Calendar.DAY_OF_MONTH, plant.getWateringCycleInDays());
-            plant.setWateringDeadline(sdf.format(c.getTime()));
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
+        Calendar c = Calendar.getInstance();
+        c.setTime(sdf.parse(plant.getLastWateringDate()));
+        c.add(Calendar.DAY_OF_MONTH, plant.getWateringCycleInDays());
+        plant.setWateringDeadline(sdf.format(c.getTime()));
         return plant;
     }
 
-    public Plant addPlant(String body) {
-        ObjectMapper mapper = new ObjectMapper();
+    public Plant addPlant(Plant plant) throws JsonProcessingException, ParseException {
 
-        try {
-            JsonNode dataTree = mapper.readTree(body);
-            String name = mapper.treeToValue(dataTree.get("name"), String.class);
-            String description = mapper.treeToValue(dataTree.get("description"), String.class);
-            int wateringCycle = mapper.treeToValue(dataTree.get("wateringCycle"), Integer.class);
-            Plant plant = Plant.builder().name(name).description(description).wateringCycleInDays(wateringCycle).build();
-
-            if (plant != null) {
-                Date now = Calendar.getInstance().getTime();
-                plant.setLastWateringDate(sdf.format(now));
-                plant = calculateAndSetWateringDeadline(plant);
-                plantRepository.save(plant);
-                return plant;
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
+        Date now = Calendar.getInstance().getTime();
+        plant.setLastWateringDate(sdf.format(now));
+        plant = calculateAndSetWateringDeadline(plant);
+        plantRepository.save(plant);
+        return plant;
     }
 
     public String uploadPlantImage(Plant plant, MultipartFile file) {
@@ -90,7 +71,7 @@ public class PlantService {
         return fileStorageService.storeFile(file);
     }
 
-    public Plant updatePlantWatered(Plant plant) {
+    public Plant updatePlantWatered(Plant plant) throws ParseException {
         plant.setLastWateringDate(sdf.format(Calendar.getInstance().getTime()));
         return calculateAndSetWateringDeadline(plant);
     }
@@ -100,7 +81,7 @@ public class PlantService {
         plantRepository.deleteById(id);
     }
 
-    public void deletePlantImage(long id) {
+    private void deletePlantImage(long id) {
         Plant plant = plantRepository.findById(id).orElse(null);
         if (plant != null && !StringUtils.isEmpty(plant.getImageURL())) {
             fileStorageService.deleteFile(plant.getImageURL());
@@ -129,7 +110,7 @@ public class PlantService {
                     plantRepository.save(plant);
                 }
             }
-        } catch (JsonProcessingException e) {
+        } catch (JsonProcessingException | ParseException e) {
             e.printStackTrace();
         }
     }

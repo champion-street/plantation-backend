@@ -17,7 +17,7 @@ public class JSONService {
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }
-        return "";
+        return null;
     }
 
     public static Object applyPatch(JsonPatch patch, Object object, Class<?> clazz) throws JsonPatchException, JsonProcessingException {
