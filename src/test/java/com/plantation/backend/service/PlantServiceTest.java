@@ -107,10 +107,10 @@ public class PlantServiceTest {
 
     @Test
     @Transactional
-    public void testAddPlantShouldReturn2() throws JsonProcessingException, ParseException {
+    public void testCreatePlantShouldCreateThePlant() throws JsonProcessingException, ParseException {
         PlantDTO newPlant = PlantDTO.builder().name("newPlant").wateringCycleInDays(3).build();
-        plantService.addPlant(newPlant);
-        assertEquals(2, plantRepository.findAll().size());
+        Plant plant = plantService.createPlant(newPlant);
+        assertEquals(plant.getName(), newPlant.getName());
     }
 
     @Test
@@ -138,8 +138,8 @@ public class PlantServiceTest {
 
     @Test
     public void testSetPlantImageURLShouldReturnTestImage() {
-        plantService.setPlantImageURL(plant, "testImage.png");
-        assertEquals("testImage.png", plantRepository.findAll().get(0).getImageURL());
+        plant = plantService.setPlantImageURL(plant, "testImage.png");
+        assertEquals("testImage.png", plant.getImageURL());
     }
 
     @Test
@@ -156,20 +156,20 @@ public class PlantServiceTest {
         Plant newPlant = Plant.builder().name("plantName").description("desc").wateringCycleInDays(2).lastWateringDate(sdf.format(Calendar.getInstance().getTime())).build();
         plantRepository.save(newPlant);
         assertEquals(2, plantRepository.findAll().size());
-        plantService.bulkWaterPlants(bulkWaterIds);
+        List<Plant> plants = plantService.bulkWaterPlants(bulkWaterIds);
         Date now = Calendar.getInstance().getTime();
         Calendar c = Calendar.getInstance();
         c.setTime(now);
         c.add(Calendar.DAY_OF_MONTH, plant.getWateringCycleInDays());
-        assertEquals(sdf.format(c.getTime()), plantRepository.findAll().get(0).getWateringDeadline());
+        assertEquals(sdf.format(c.getTime()), plants.get(0).getWateringDeadline());
         c.add(Calendar.DAY_OF_MONTH, -1);
-        assertEquals(sdf.format(c.getTime()), plantRepository.findAll().get(1).getWateringDeadline());
+        assertEquals(sdf.format(c.getTime()), plants.get(1).getWateringDeadline());
     }
 
     private MultipartFile getFile() {
         Path path = Paths.get("E:\\_Munka\\plantation-backend\\src\\test\\resources\\testImages\\testimage.png");
-        String name = "testimage.png";
-        String originalFileName = "testimage.png";
+        String name = "static/testimage.png";
+        String originalFileName = "static/testimage.png";
         String contentType = "image/png";
         byte[] content = null;
         try {

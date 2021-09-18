@@ -34,8 +34,8 @@ public class FileStorageServiceTest {
     @Before
     public void getFile() {
         Path path = Paths.get("E:\\_Munka\\plantation-backend\\src\\test\\resources\\testImages\\testimage.png");
-        String name = "testimage.png";
-        String originalFileName = "testimage.png";
+        String name = "static/testimage.png";
+        String originalFileName = "static/testimage.png";
         String contentType = "image/png";
         byte[] content = null;
         try {
