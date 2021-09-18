@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -44,7 +45,7 @@ public class PlantService {
     public Plant applyPatchToPlant(JsonPatch patch, Plant originalPlant) throws JsonPatchException, JsonProcessingException, ParseException {
         Plant patchedPlant = (Plant) JSONService.applyPatch(patch, originalPlant, Plant.class);
         calculateAndSetWateringDeadline(patchedPlant);
-        return plantRepository.save(patchedPlant);
+        return patchedPlant;
     }
 
     public Plant calculateAndSetWateringDeadline(Plant plant) throws ParseException {
@@ -55,14 +56,13 @@ public class PlantService {
         return plant;
     }
 
-    public Plant addPlant(PlantDTO plantDTO) throws ParseException {
+    public Plant createPlant(PlantDTO plantDTO) throws ParseException {
 
         Plant plant = Plant.builder().name(plantDTO.getName()).description(plantDTO.getDescription()).wateringCycleInDays(plantDTO.getWateringCycleInDays()).build();
 
         Date now = Calendar.getInstance().getTime();
         plant.setLastWateringDate(sdf.format(now));
         plant = calculateAndSetWateringDeadline(plant);
-        plantRepository.save(plant);
         return plant;
     }
 
@@ -92,29 +92,33 @@ public class PlantService {
 
     public Plant setPlantImageURL(Plant plant, String imageURL) {
         plant.setImageURL(imageURL);
-        return plantRepository.save(plant);
+        return plant;
+    }
+
+    public Plant savePlant(Plant p) {
+        return plantRepository.save(p);
     }
 
     public void deleteAllPlants() {
         plantRepository.deleteAll();
     }
 
-    public void bulkWaterPlants(String body) {
+    public List<Plant> bulkWaterPlants(String body) {
         ObjectMapper mapper = new ObjectMapper();
-
+        List<Plant> plants = new ArrayList<>();
         try {
             JsonNode dataTree = mapper.readTree(body);
             String[] idArray = mapper.treeToValue(dataTree.get("ids"), String[].class);
             for (String id : idArray) {
                 Plant plant = plantRepository.findById(Long.parseLong(id)).orElse(null);
                 if (plant != null) {
-                    plant = updatePlantWatered(plant);
-                    plantRepository.save(plant);
+                    plants.add(updatePlantWatered(plant));
                 }
             }
         } catch (JsonProcessingException | ParseException e) {
             e.printStackTrace();
         }
+        return plants;
     }
 
 }
