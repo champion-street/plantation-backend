@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.List;
 
 @CrossOrigin("*")
 @RestController
@@ -33,7 +34,7 @@ public class WebController {
     public ResponseEntity<?> addPlant(@RequestBody PlantDTO plant) {
         Plant newPlant = null;
         try {
-            newPlant = plantService.addPlant(plant);
+            newPlant = plantService.createPlant(plant);
         } catch (ParseException e) {
             createResponse("Something went wrong during creating plant!");
         }
@@ -42,8 +43,8 @@ public class WebController {
 
     @PutMapping("/plant")
     public ResponseEntity<?> bulkWaterPlants(@RequestBody String body) {
-        plantService.bulkWaterPlants(body);
-        return new ResponseEntity<>(HttpStatus.OK);
+        List<Plant> plants = plantService.bulkWaterPlants(body);
+        return createResponse(plants);
     }
 
     @GetMapping("/plant/{id}")
@@ -104,18 +105,25 @@ public class WebController {
     }
 
     private ResponseEntity<?> createResponse(Object object) {
-        return createResponse(object, null, HttpStatus.OK);
+        return savePlantAndCreateResponse(object, null, HttpStatus.OK);
     }
 
     private ResponseEntity<?> createResponse(String message) {
-        return createResponse(null, message, HttpStatus.INTERNAL_SERVER_ERROR);
+        return savePlantAndCreateResponse(null, message, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     private ResponseEntity<?> createResponse(Object object, HttpStatus statusCode) {
-        return createResponse(object, null, statusCode);
+        return savePlantAndCreateResponse(object, null, statusCode);
     }
 
-    private ResponseEntity<?> createResponse(Object object, String message, HttpStatus statusCode) {
+    private ResponseEntity<?> savePlantAndCreateResponse(Object object, String message, HttpStatus statusCode) {
+        if (object instanceof Plant) {
+            plantService.savePlant((Plant) object);
+        } else if (object instanceof List) {
+            for (Object elem : (List) object) {
+                plantService.savePlant((Plant) elem);
+            }
+        }
         if (object != null) {
             String returnJson = JSONService.objectToString(object);
             return new ResponseEntity<>(returnJson, statusCode);
